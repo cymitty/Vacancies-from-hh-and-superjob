@@ -1,0 +1,33 @@
+{
+    "name": "amitty/vacancies",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Andrew Mitty",
+            "email": "cy.andrewmitty@gmail.com"
+        }
+    ],
+    "config": {
+        "secure-http": false
+    },
+    "repositories": [
+
+        {
+            "type": "package",
+            "package": {
+                "name": "superjobru/superjob-api-client",
+                "version": "dev-master",
+                "source": {
+                    "type" : "git",
+                    "url" : "https://github.com/superjobru/superjob-api-client.git",
+                    "reference" : "master"
+                }
+            }
+        }
+
+    ],
+    "require": {
+        "symfony/console": "^4.0",
+        "superjobru/superjob-api-client": "dev-master"
+    }
+}

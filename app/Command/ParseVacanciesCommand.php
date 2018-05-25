@@ -10,6 +10,7 @@ namespace app\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use app\Classes\MyHHApi;
 use app\Classes\Helper;
 
 class ParseVacanciesCommand extends Command
@@ -39,53 +40,31 @@ class ParseVacanciesCommand extends Command
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    //Строим запрос на основе конфига
-    $url = 'https://api.hh.ru/vacancies?' . http_build_query([
-        'area'            => $this->config['hh-area'],
-        'specialization'  => $this->config['hh-specialization'],
-        'period'          => $this->config['hh-period'],
-        'per_page'        => 100
-        ]);
-    $curl = curl_init($url);
-    curl_setopt_array($curl, array(
-        CURLOPT_SSL_VERIFYPEER => false,// для работы с https
-        CURLOPT_USERAGENT => "MyCustomSearch",// обязателен любой user-agent для api.hh.ru
-        CURLOPT_RETURNTRANSFER => true// it will return the result on success, false on failure.
-    ));
-    $curlResponse = json_decode(curl_exec($curl), true);
-    curl_close($curl);
-    $vacancies = [];
-    foreach ($curlResponse['items'] as $item)
+    $vacancies = array();
+    $hhAPI = new MyHHApi($this->config);
+    $hhAPI->run();
+    $vacancies = $hhAPI->getVacancies();
+
+    $superJobAPI = new \SuperjobAPI();
+    $superJobAPI->setSecretKey('v1.r079a76ff5c97cf7be4a70fa142569ab6302f57724eaf8d1226af851f3899905925966148.fbbb6bf6988a374e666e1bd4b6cb9508b80183e2');
+    $vacanciesSuperJob = $superJobAPI->customGetVacancies([
+        "town"        => 782,
+        "catalogues"  => 33,
+        "period"      => 1,
+        "page"        => 0,
+        "count"       => 10,
+
+    ]);
+
+    $vacanciesTotal = count($vacancies) + count($vacanciesSuperJob);
+
+    if ($vacancies)
     {
-      $vacancies[] = [
-          'name'            => $item['name'],
-          'requirement'     => $item['snippet']['requirement'],
-          'responsibility'  => $item['snippet']['responsibility'],
-          'url'             => $item['alternate_url']
-      ];
+      $file = Helper::generateFile($vacancies, $vacanciesSuperJob);
+      $output->writeln('Файл был создан, на сегодня найдено ' . $vacanciesTotal . ' вакансий');
+      $output->writeln('Открываю созданный файл...');
+      exec(realpath($file));// Открыть созданный файл
     }
-
-    if (Helper::generateFile($vacancies))
-    {
-      $output->writeln('Файл был создан, найдено ' . count($vacancies) . ' вакансий');
-    }
-
-
-//    $outputLog = [];
-//    $outputText = "";
-//    exec('ping ya.ru', $outputLog);
-//    foreach ($outputLog as $line)
-//    {
-//      $outputLog .= $line;
-//      $outputText .= $line . PHP_EOL;
-//    }
-//
-//    if ( $this->createFileWithResult($outputText) )
-//    {
-//      $output->writeln('file was created.');
-//      $output->writeln($outputLog);
-//    }
-
 
   }
 
