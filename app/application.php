@@ -7,7 +7,9 @@
  */
 require '../vendor/autoload.php';
 require 'Command/ParseVacanciesCommand.php';
+require 'Classes/MyHHApi.php';
 require 'Classes/Helper.php';
+require 'Classes/superjob-api-client/SuperjobAPI.php';
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,7 +25,8 @@ $application = new Application();
 $command = new ParseVacanciesCommand($config);
 $application->add($command);
 
+// раскомментировать если будут добавляться команды
+// тогда вызов комманды будет /php.exe application.php vacancies
 $application->setDefaultCommand($command->getName(), true);
-
 //$application->setDefaultCommand($command, true);
 $application->run();
